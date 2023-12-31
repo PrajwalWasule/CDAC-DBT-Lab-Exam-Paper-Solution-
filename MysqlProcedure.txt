@@ -1,0 +1,194 @@
+delimiter &&
+create procedure get_patient_data()
+begin
+select * from patient;
+end &&
+delimiter ;
+
+------------------------------------------
+
+delimiter &&
+create procedure get_patient_byid(in id int)
+begin
+select * from patient where pid = id;
+end &&
+delimiter ;
+
+------------------------------------------
+
+delimiter &&
+create procedure get_patient_bg(in id int, out pbg varchar(10))
+begin
+select bg into pbg from patient where pid = id;
+end &&
+delimiter ;
+
+
+---------------------------------------------------------------
+
+delimiter &&
+create procedure get_patient_details(in patage int)
+begin
+select * from patient where age = patage;
+end &&
+delimiter ;
+
+-------------------------------------------------------------------
+
+delimiter &&
+create procedure get_patient_age(inout idage int)
+begin
+select age into idage from patient where pid = idage;
+end &&
+delimiter ;
+
+---------------------------------------------------------------------------
+
+mysql> use hospital;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql> show tables;
++--------------------+
+| Tables_in_hospital |
++--------------------+
+| patient            |
++--------------------+
+1 row in set (0.00 sec)
+
+mysql> insert into patient values(1, 'madhava', 'reddy', 45, 'o+ve'), 
+    -> (2, 'abhinav', 'bindra', 45, 'o-ve'),
+    -> (3, 'madhava', 'kiran', 52, 'o+ve'),
+    -> (4, 'hari', 'kiran', 60, 'b-ve');
+Query OK, 4 rows affected (0.00 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+mysql> select * from patient;
++------+---------+--------+------+------+
+| pid  | fname   | lname  | age  | bg   |
++------+---------+--------+------+------+
+|    1 | madhava | reddy  |   45 | o+ve |
+|    2 | abhinav | bindra |   45 | o-ve |
+|    3 | madhava | kiran  |   52 | o+ve |
+|    4 | hari    | kiran  |   60 | b-ve |
++------+---------+--------+------+------+
+4 rows in set (0.00 sec)
+
+mysql> delimiter &&
+mysql> create procedure get_patient_data()
+    -> begin
+    -> select * from patient;
+    -> end &&
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> delimiter ;
+mysql> get_patient_details();
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'get_patient_details()' at line 1
+mysql> call get_patient_details();
+ERROR 1305 (42000): PROCEDURE hospital.get_patient_details does not exist
+mysql> call get_patient_data();
++------+---------+--------+------+------+
+| pid  | fname   | lname  | age  | bg   |
++------+---------+--------+------+------+
+|    1 | madhava | reddy  |   45 | o+ve |
+|    2 | abhinav | bindra |   45 | o-ve |
+|    3 | madhava | kiran  |   52 | o+ve |
+|    4 | hari    | kiran  |   60 | b-ve |
++------+---------+--------+------+------+
+4 rows in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> clae
+    -> ;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'clae' at line 1
+mysql> clear
+mysql> 
+mysql> delimiter &&
+mysql> create procedure get_patient_byid(in id int)
+    -> begin
+    -> select * from patient where pid = id;
+    -> end &&
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delimiter ;
+mysql> call get_patient_byid(1);
++------+---------+-------+------+------+
+| pid  | fname   | lname | age  | bg   |
++------+---------+-------+------+------+
+|    1 | madhava | reddy |   45 | o+ve |
++------+---------+-------+------+------+
+1 row in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delimiter &&
+mysql> create procedure get_patient_bg(in id int, out pbg varchar(10))
+    -> begin
+    -> select bg into pbg from patient where pid = id;
+    -> end &&
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> delimiter ;
+mysql> call get_patient_bg(2, @bg);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select @bg;
++------+
+| @bg  |
++------+
+| o-ve |
++------+
+1 row in set (0.00 sec)
+
+mysql> delimiter &&
+mysql> create procedure get_patient_details(in patage int)
+    -> begin
+    -> select * from patient where age = patage;
+    -> end &&
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delimiter ;
+mysql> call get_patient_details(45);
++------+---------+--------+------+------+
+| pid  | fname   | lname  | age  | bg   |
++------+---------+--------+------+------+
+|    1 | madhava | reddy  |   45 | o+ve |
+|    2 | abhinav | bindra |   45 | o-ve |
++------+---------+--------+------+------+
+2 rows in set (0.00 sec)
+
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delimiter &&
+mysql> create procedure get_patient_age(inout idage int)
+    -> begin
+    -> select age into idage from patient where pid = idage;
+    -> end &&
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> delimiter ;
+mysql> set @id = 3;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> call get_patient_age(@id);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> select @id
+    -> ;
++------+
+| @id  |
++------+
+|   52 |
++------+
+1 row in set (0.01 sec)
+
+mysql> select @id as age;
++------+
+| age  |
++------+
+|   52 |
++------+
+1 row in set (0.00 sec)
+

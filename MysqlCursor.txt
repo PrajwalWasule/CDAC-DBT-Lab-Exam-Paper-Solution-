@@ -1,0 +1,44 @@
+delimiter &&
+create procedure set_data()
+begin 
+declare done int default 0;
+declare id int;
+declare fstname varchar(20);
+declare lstname varchar(20);
+declare page int;
+declare pbg varchar(10);
+declare mycursor cursor for select pid, fname, lname, age, bg from patient;
+declare continue handler for not found set done = 1;
+open mycursor;
+loop_label:loop
+    fetch mycursor into id, fstname, lstname, page, pbg;
+    if(done = 1) then
+    leave loop_label;
+    end if;
+    insert into temppatient values(id, fstname, lstname, page, pbg);
+    iterate loop_label;
+end loop;
+close mycursor;
+end &&
+delimiter ;
+
+--------------------------------------------------------------------------------
+
+mysql> call set_data;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> select * from temppatient;
++------+---------+--------+------+------+
+| pid  | fname   | lname  | age  | bg   |
++------+---------+--------+------+------+
+|    1 | madhava | reddy  | NULL | NULL |
+|    2 | abhinav | bindra | NULL | NULL |
+|    3 | madhava | kiran  | NULL | NULL |
+|    4 | hari    | kiran  | NULL | NULL |
+|    1 | madhava | reddy  |   45 | o+ve |
+|    2 | abhinav | bindra |   45 | o-ve |
+|    3 | madhava | kiran  |   52 | o+ve |
+|    4 | hari    | kiran  |   60 | b-ve |
++------+---------+--------+------+------+
+8 rows in set (0.00 sec)
+

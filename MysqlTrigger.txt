@@ -1,0 +1,76 @@
+-----------------------------	TRIGGER	-----------------------------------
+
+delimiter &&
+create trigger before_insert_patient
+before insert on patient for each row
+begin 
+   if(new.age < 0) then
+      set new.age = abs(new.age);
+   end if;
+end &&
+
+----------------------------------------------
+
+delimiter &&
+create trigger after_insert_patient
+after insert on patient for each row
+begin 
+   insert into temp values(new.pid, new.fname);
+end &&
+delimiter ;
+
+----------------------------------------------
+
+delimiter &&
+create trigger after_update_patient
+after update on patient for each row
+begin 
+   insert into logdetails values(user(), now(), old.lname, new.lname);
+end &&
+delimiter ;
+
+----------------------------------------------
+
+delimiter &&
+create trigger after_delete_patient
+after delete on patient for each row
+begin 
+   set @log = concat("deleted patient fname : ", old.fname);
+end &&
+delimiter ;
+
+---------------------------------------------------------------
+
+mysql> delimiter &&
+mysql> create trigger after_delete_patient
+    -> after delete on patient for each row
+    -> begin 
+    ->    set @log = concat("deleted patient fname : ", old.fname);
+    -> end &&
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delimiter ;
+mysql> select * from patient;
++------+---------+----------+------+------+
+| pid  | fname   | lname    | age  | bg   |
++------+---------+----------+------+------+
+|    1 | madhava | reddy    |   45 | o+ve |
+|    2 | abhinav | bindra   |   45 | o-ve |
+|    3 | madhava | malhotra |   52 | o+ve |
+|    4 | hari    | kiran    |   60 | b-ve |
+|    5 | roshan  | sharma   |   54 | b+ve |
+|    6 | rajesh  | wasnik   |   52 | b-ve |
++------+---------+----------+------+------+
+6 rows in set (0.00 sec)
+
+mysql> delete from patient where pid = 6;
+Query OK, 1 row affected (0.00 sec)
+
+mysql> select @log;
++--------------------------------+
+| @log                           |
++--------------------------------+
+| deleted patient fname : rajesh |
++--------------------------------+
+1 row in set (0.00 sec)
+

@@ -1,0 +1,155 @@
+mysql> alter table Products rename column Manufacturing to Created;
+Query OK, 0 rows affected (0.03 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> select * from Products;
++-----------+-------------+-----------+----------+-------+------------+------------+
+| productId | productCode | Name      | quantity | price | Created    | supplierId |
++-----------+-------------+-----------+----------+-------+------------+------------+
+|      1001 | PEN         | Pen Red   |     5000 |  1.23 | 1995-01-02 |        501 |
+|      1002 | PEN         | Pen Blue  |     8000 |  1.25 | 2000-05-01 |        501 |
+|      1003 | PEN         | Pen Black |     2000 |  1.25 | 1999-06-10 |        502 |
+|      1004 | PEC         | Pencil 2B |    10000 |  0.48 | 1997-05-05 |        502 |
+|      1005 | PEC         | Pencil 2B |     8000 |  0.49 | 1995-04-03 |        503 |
++-----------+-------------+-----------+----------+-------+------------+------------+
+5 rows in set (0.00 sec)
+
+
+mysql> select * from Products where year(Created) = 1997 and month(Created) = 05 and quantity < 2500 or quantity >= 10000;
++-----------+-------------+-----------+----------+-------+------------+------------+
+| productId | productCode | Name      | quantity | price | Created    | supplierId |
++-----------+-------------+-----------+----------+-------+------------+------------+
+|      1004 | PEC         | Pencil 2B |    10000 |  0.48 | 1997-05-05 |        502 |
++-----------+-------------+-----------+----------+-------+------------+------------+
+1 row in set (0.00 sec)
+
+mysql> select p.productId, p.productCode, p.Name, p.quantity, p.price, p.Created, s.name from Products p inner join Suppliers s on p.supplierId = s.supplierId and p.price < 0.6;
++-----------+-------------+-----------+----------+-------+------------+-------------+
+| productId | productCode | Name      | quantity | price | Created    | name        |
++-----------+-------------+-----------+----------+-------+------------+-------------+
+|      1004 | PEC         | Pencil 2B |    10000 |  0.48 | 1997-05-05 | Vikas       |
+|      1005 | PEC         | Pencil 2B |     8000 |  0.49 | 1995-04-03 | Vijay sales |
++-----------+-------------+-----------+----------+-------+------------+-------------+
+2 rows in set (0.00 sec)
+
+mysql> select productCode, floor(quantity * price) as 'total_amount' from Products;
+
++-------------+--------------+
+| productCode | total_amount |
++-------------+--------------+
+| PEN         |         6150 |
+| PEN         |        10000 |
+| PEN         |         2500 |
+| PEC         |         4799 |
+| PEC         |         3920 |
++-------------+--------------+
+5 rows in set (0.01 sec)
+
+mysql> select * from Suppliers where supplierId not in (select distinct supplierId
+from Products);
++------------+---------+----------+
+| supplierId | name    | phone    |
++------------+---------+----------+
+|        505 | Raymond | 88885555 |
++------------+---------+----------+
+1 row in set (0.00 sec)
+
+delimiter &&
+create function calculate_product_cost(
+    quantity int,
+    price float
+)
+returns float
+deterministic
+begin
+declare cost float;
+if(price < 0.5) then
+    set cost = quantity * price;
+elseif(price >= 0.5 and price < 1.25) then
+    set cost = quantity * price + 0.1 * price + 0.1 * price;
+elseif(price >= 1.25) then
+    set cost = quantity * price + 0.15 * price + 0.2 * price;
+end if;
+return (cost);
+end &&
+delimiter ;
+
+mysql> select productCode, Name, quantity, price, floor(calculate_product_cost(quan
+tity, price)) as 'cost' from Products;
++-------------+-----------+----------+-------+-------+
+| productCode | Name      | quantity | price | cost  |
++-------------+-----------+----------+-------+-------+
+| PEN         | Pen Red   |     5000 |  1.23 |  6150 |
+| PEN         | Pen Blue  |     8000 |  1.25 | 10000 |
+| PEN         | Pen Black |     2000 |  1.25 |  2500 |
+| PEC         | Pencil 2B |    10000 |  0.48 |  4800 |
+| PEC         | Pencil 2B |     8000 |  0.49 |  3920 |
++-------------+-----------+----------+-------+-------+
+5 rows in set (0.00 sec)
+
+--------------------------------------------------------------------------------
+
+delimiter &&
+create trigger update_prod_supp
+after update on newproduct for each row
+begin 
+insert into prod_supp values(new.productId, new.Name, old.price, new.price, new.Created, (select name from Suppliers where supplierId = new.supplierId));
+end &&
+delimiter ;
+
+---------------------------------------------------------------------------------
+
+mysql> create table newproduct like Products;
+Query OK, 0 rows affected (0.04 sec)
+
+mysql> delimiter &&
+mysql> create trigger update_prod_supp
+    -> after update on newproduct for each row
+    -> begin 
+    -> insert into prod_supp values(new.productId, new.Name, old.price, new.price, new.Created, (select name from Suppliers where supplierId = new.supplierId));
+    -> end &&
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> delimiter ;
+mysql> insert into newproduct select * from Products;
+Query OK, 5 rows affected (0.00 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> select * from newproduct;
++-----------+-------------+-----------+----------+-------+------------+------------+
+| productId | productCode | Name      | quantity | price | Created    | supplierId |
++-----------+-------------+-----------+----------+-------+------------+------------+
+|      1001 | PEN         | Pen Red   |     5000 |  1.23 | 1995-01-02 |        501 |
+|      1002 | PEN         | Pen Blue  |     8000 |  1.25 | 2000-05-01 |        501 |
+|      1003 | PEN         | Pen Black |     2000 |  1.25 | 1999-06-10 |        502 |
+|      1004 | PEC         | Pencil 2B |    10000 |  0.48 | 1997-05-05 |        502 |
+|      1005 | PEC         | Pencil 2B |     8000 |  0.49 | 1995-04-03 |        503 |
++-----------+-------------+-----------+----------+-------+------------+------------+
+5 rows in set (0.00 sec)
+
+mysql> update newproduct set price = 1.5 where productId = 1002;
+Query OK, 1 row affected (0.01 sec)
+Rows matched: 1  Changed: 1  Warnings: 0
+
+mysql> select * from newproduct;
++-----------+-------------+-----------+----------+-------+------------+------------+
+| productId | productCode | Name      | quantity | price | Created    | supplierId |
++-----------+-------------+-----------+----------+-------+------------+------------+
+|      1001 | PEN         | Pen Red   |     5000 |  1.23 | 1995-01-02 |        501 |
+|      1002 | PEN         | Pen Blue  |     8000 |   1.5 | 2000-05-01 |        501 |
+|      1003 | PEN         | Pen Black |     2000 |  1.25 | 1999-06-10 |        502 |
+|      1004 | PEC         | Pencil 2B |    10000 |  0.48 | 1997-05-05 |        502 |
+|      1005 | PEC         | Pencil 2B |     8000 |  0.49 | 1995-04-03 |        503 |
++-----------+-------------+-----------+----------+-------+------------+------------+
+5 rows in set (0.00 sec)
+
+mysql> select * prod_supp;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'prod_supp' at line 1
+mysql> select * from prod_supp;
++-----------+-------------+----------+----------+-------------------+-------------+
+| productID | productName | oldprice | newprice | manufacturingDate | sup_name    |
++-----------+-------------+----------+----------+-------------------+-------------+
+|      1002 | Pen Blue    |     1.25 |     1.50 | 2000-05-01        | ABC Traders |
++-----------+-------------+----------+----------+-------------------+-------------+
+1 row in set (0.00 sec)
+

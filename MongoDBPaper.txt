@@ -1,0 +1,152 @@
+simple_db> db.mycol.insert([
+... {
+... title: "MongoDB Overview",
+... description: "MongoDB is no SQL database",
+... by: "tutorials point",
+... url: "http://www.tutorialspoint.com",
+... tags: ["mongodb", "database", "NoSQL"],
+... likes: 100
+... },
+... {
+... title: "NoSQL Database",
+... description: "NoSQL database doesn't have tables",
+... by: "tutorials point",
+... url: "http://www.tutorialspoint.com",
+... tags: ["mongodb", "database", "NoSQL"],
+... likes: 20,
+... comments: [
+... {
+... user:"user1",
+... message: "My first comment",
+... dateCreated: new Date(2013,11,10,2,35),
+... like: 0
+... }
+... ]
+simple_db> db.mycol.find()
+[
+  {
+    _id: ObjectId('65918b6bf88a71ec767b1444'),
+    title: 'MongoDB Overview',
+    description: 'MongoDB is no SQL database',
+    by: 'tutorials point',
+    url: 'http://www.tutorialspoint.com',
+    tags: [ 'mongodb', 'database', 'NoSQL' ],
+    likes: 100
+  },
+  {
+    _id: ObjectId('65918b6bf88a71ec767b1445'),
+    title: 'NoSQL Database',
+    description: "NoSQL database doesn't have tables",
+    by: 'tutorials point',
+    url: 'http://www.tutorialspoint.com',
+    tags: [ 'mongodb', 'database', 'NoSQL' ],
+    likes: 20,
+    comments: [
+      {
+        user: 'user1',
+        message: 'My first comment',
+        dateCreated: ISODate('2013-12-09T22:05:00.000Z'),
+        like: 0
+      }
+    ]
+  }
+]
+simple_db> db.mycol.find({likes : {$gt : 10}}, {})
+[
+  {
+    _id: ObjectId('65918b6bf88a71ec767b1444'),
+    title: 'MongoDB Overview',
+    description: 'MongoDB is no SQL database',
+    by: 'tutorials point',
+    url: 'http://www.tutorialspoint.com',
+    tags: [ 'mongodb', 'database', 'NoSQL' ],
+    likes: 100
+  },
+  {
+    _id: ObjectId('65918b6bf88a71ec767b1445'),
+    title: 'NoSQL Database',
+    description: "NoSQL database doesn't have tables",
+    by: 'tutorials point',
+    url: 'http://www.tutorialspoint.com',
+    tags: [ 'mongodb', 'database', 'NoSQL' ],
+    likes: 20,
+    comments: [
+      {
+        user: 'user1',
+        message: 'My first comment',
+        dateCreated: ISODate('2013-12-09T22:05:00.000Z'),
+        like: 0
+      }
+    ]
+  }
+]
+simple_db> db.mycol.find({comments : {$elemMatch : {$eq : {user : "user1"}}}, {})
+Uncaught:
+SyntaxError: Unexpected token (1:67)
+
+> 1 | db.mycol.find({comments : {$elemMatch : {$eq : {user : "user1"}}}, {})
+    |                                                                    ^
+  2 |
+
+simple_db> db.mycol.find({comments : {$elemMatch : {$eq : {user : "user1"}}})
+Uncaught:
+SyntaxError: Unexpected token, expected "," (1:65)
+
+> 1 | db.mycol.find({comments : {$elemMatch : {$eq : {user : "user1"}}})
+    |                                                                  ^
+  2 |
+
+simple_db> db.mycol.find({comments : {$elemMatch : {$eq : {user : "user1"}}}}, {})
+
+simple_db> db.mycol.find({comments : {$elemMatch : {$eq : {user : "user1"}}}}, {})
+
+simple_db> db.mycol.find({}, {})
+[
+  {
+    _id: ObjectId('65918b6bf88a71ec767b1444'),
+    title: 'MongoDB Overview',
+    description: 'MongoDB is no SQL database',
+    by: 'tutorials point',
+    url: 'http://www.tutorialspoint.com',
+    tags: [ 'mongodb', 'database', 'NoSQL' ],
+    likes: 100
+  },
+  {
+    _id: ObjectId('65918b6bf88a71ec767b1445'),
+    title: 'NoSQL Database',
+    description: "NoSQL database doesn't have tables",
+    by: 'tutorials point',
+    url: 'http://www.tutorialspoint.com',
+    tags: [ 'mongodb', 'database', 'NoSQL' ],
+    likes: 20,
+    comments: [
+      {
+        user: 'user1',
+        message: 'My first comment',
+        dateCreated: ISODate('2013-12-09T22:05:00.000Z'),
+        like: 0
+      }
+    ]
+  }
+]
+simple_db> db.mycol.find({comments : {$elemMatch : {user : "user1"}}}, {})
+[
+  {
+    _id: ObjectId('65918b6bf88a71ec767b1445'),
+    title: 'NoSQL Database',
+    description: "NoSQL database doesn't have tables",
+    by: 'tutorials point',
+    url: 'http://www.tutorialspoint.com',
+    tags: [ 'mongodb', 'database', 'NoSQL' ],
+    likes: 20,
+    comments: [
+      {
+        user: 'user1',
+        message: 'My first comment',
+        dateCreated: ISODate('2013-12-09T22:05:00.000Z'),
+        like: 0
+      }
+    ]
+  }
+]
+simple_db> 
